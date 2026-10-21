@@ -2,6 +2,7 @@
   name: ensure-sops
   description: Check if your files are encrypted with Mozilla SOPS or not.
   language: python
+  language_version: "3.14"
   entry: ensure_sops
   minimum_pre_commit_version: 2.9.2
   types_or: [ json, yaml, ini, dotenv]
