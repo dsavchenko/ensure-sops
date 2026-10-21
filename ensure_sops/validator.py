@@ -1,4 +1,5 @@
 import itertools
+import re
 from typing import Any, Dict, Iterable, List, Optional, Set, TextIO, Tuple, Union
 
 from ordered_set import OrderedSet
@@ -73,11 +74,18 @@ class SopsValidator:
         self._file_cache = file_content
         self.stream.seek(position)
 
-    def check_encryption(self, fmt: Formats, values: Dict[str, Any]) -> None:
+    def check_encryption(
+        self,
+        fmt: Formats,
+        values: Dict[str, Any],
+        encrypted_regex: Optional[re.Pattern] = None,
+    ) -> None:
         if fmt == Formats.bin:
             raise UnknownFormatError([fmt_class for fmt_class in self._parsers])
         else:
-            has_sops_keys, user_defined_values = fmt.value.filter_values(values)
+            has_sops_keys, user_defined_values = fmt.value.filter_values(
+                values, encrypted_regex=encrypted_regex
+            )
             successful_keys, failed_keys = _check_encryption(user_defined_values)
             if failed_keys:
                 raise UnencryptedItemsError(failed_keys)

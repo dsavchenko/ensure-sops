@@ -4,13 +4,15 @@
 This is a pre-commit compatible application that validates your SOPS encrypted files are indeed encrypted. It works with json, yaml, ini and dotenv formatted files that are products of SOPS' encryption. Main use case is preventing mistakes like committing files that should've been encrypted, unencrypted.
 
 ## History
-`ensure_sops` is influenced by [pre-commit-hook-ensure-sops](https://github.com/yuvipanda/pre-commit-hook-ensure-sops). We tried to extend that package but the way it was written didn't provided all the features we needed, thus we created a new package with extensibility in mind.
+This is a fork of https://github.com/tacto-ai/ensure-sops that adds features I need to use this project working in the GitOps context, where the k8s secrets are SOPS-encrypted.
 
 ## Features
 - Compatibility with all SOPS' output formats
 - Compatibility with null/empty values
 - Can determine file format by extension, or content.
 - Automatically find all json, yaml, ini and dotenv files that start or end with `enc` or `secret` (or `secrets`)
+- Basic support of the creation rules defined in `.sops.yaml` config file to narrow checked field selection.
+- Optionally, checks there is no unexpected fields in the Secret or Configmap manifests.
 
 ## Installation
 Pre-commit can handle installation automatically, you can skip this part if you're going to use pre-commit. Otherwise, you can any use any python package manager to install.
@@ -28,8 +30,8 @@ $ pdm add --dev test ensure_sops
 You can add this to your pre-commit configuration for the most basic use. The commented lines can be used to improve file selection.
 
 ```yaml
-  - repo: https://github.com/Tacto-Technology/ensure-sops
-    rev: 0.1.0
+  - repo: https://github.com/dsavchenko/ensure-sops
+    rev: 0.1.4
     hooks:
       - id: ensure-sops
         # files: 'enc\..+'

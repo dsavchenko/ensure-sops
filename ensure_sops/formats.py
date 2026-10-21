@@ -25,13 +25,19 @@ class Format:
     ) -> Tuple[bool, Optional[Dict[str, Any]]]:  # pragma: no cover
         return NotImplemented
 
-    def filter_values(self, values: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+    def filter_values(
+        self, values: Dict[str, Any], encrypted_regex: Optional[re.Pattern] = None
+    ) -> Tuple[bool, Dict[str, Any]]:
         has_sops_keys = False
         user_defined_values = {}
         ignore_pattern: re.Pattern = self.ignore_pattern
         for key, value in values.items():
             if not ignore_pattern.match(key):
-                user_defined_values[key] = value
+                if encrypted_regex is not None:
+                    if encrypted_regex.match(key):
+                        user_defined_values[key] = value
+                else:
+                    user_defined_values[key] = value
             else:
                 has_sops_keys = True
         return has_sops_keys, user_defined_values
