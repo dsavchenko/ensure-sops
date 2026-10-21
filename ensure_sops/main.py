@@ -3,7 +3,7 @@ import pathlib
 import re
 import sys
 from argparse import ArgumentParser
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 from ruamel.yaml import YAML
 
@@ -21,12 +21,51 @@ def _get_parser() -> ArgumentParser:
     )
     argparser.add_argument("--use-sops-yaml", action="store_true")
     argparser.add_argument("--sops-yaml-path", type=str, default=".sops.yaml")
+    argparser.add_argument("--verify-keys", action="store_true")
     return argparser
+
+def _verify_keys(
+    values: Dict[str, Any]
+) -> Optional[str]:
+
+    allowed_keys = {
+        "Secret": {
+            "apiVersion",
+            "data",
+            "immutable",
+            "kind",
+            "metadata",
+            "stringData",
+            "type"
+        },
+
+        "Configmap": {
+            "apiVersion",
+            "binaryData",
+            "data",
+            "immutable",
+            "kind",
+            "metadata"
+        },
+    }
+
+    kind = values.get("kind", None)
+    if kind is None:
+        return "Not a kubernetes resource. Please turn off --verify-keys."
+    if kind not in allowed_keys:
+        return f"{kind} keys verification is not supported. Please turn off --verify-keys."
+    key_set = allowed_keys.get(kind)
+    extra_keys = set(values.keys()) - key_set
+    if extra_keys:
+        return f"verify-keys: Keys not allowed in {kind}: {extra_keys}"
+    
+    return None
 
 
 def _validate_files(
     paths: List[pathlib.Path],
     method: Methods,
+    verify_keys: bool,
     creation_rules: Optional[List[Tuple[re.Pattern, re.Pattern]]] = None,
 ) -> Dict[pathlib.Path, str]:
     failed_files = {}
@@ -35,6 +74,13 @@ def _validate_files(
         with path.open() as stream:
             validator = SopsValidator(stream, path.name, method=method)
             fmt, values = validator.parse()
+
+            if verify_keys:
+                res = _verify_keys(values)
+                if res: 
+                    failed_files[path] = res
+                    continue
+
             encrypted_regex = None
             if creation_rules is not None:
                 for rule in creation_rules:
@@ -46,7 +92,6 @@ def _validate_files(
             except ValidationError as e:
                 failed_files[path] = str(e)
     return failed_files
-
 
 def _read_creation_rules(yaml_path):
     creation_rules = None
@@ -81,7 +126,7 @@ def main(args: Optional[List[str]] = None) -> int:
     else:
         creation_rules = None
 
-    errors = _validate_files(parsed_args.files, parsed_args.method, creation_rules)
+    errors = _validate_files(parsed_args.files, parsed_args.method, verify_keys=parsed_args.verify_keys, creation_rules=creation_rules)
 
     if errors:
         for path, error in errors.items():
