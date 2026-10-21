@@ -53,7 +53,7 @@ def _read_creation_rules(yaml_path):
 
     try:
         if os.path.isfile(yaml_path):
-            with open(".sops.yaml") as fd:
+            with open(yaml_path) as fd:
                 values = yaml.load(fd)
                 creation_rules = values.get("creation_rules", None)
 
