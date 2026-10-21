@@ -20,6 +20,7 @@ def _get_parser() -> ArgumentParser:
         "--method", type=Methods, choices=list(Methods), default=Methods.strict
     )
     argparser.add_argument("--use-sops-yaml", action="store_true")
+    argparser.add_argument("--sops-yaml-path", type=str, default=".sops.yaml")
     return argparser
 
 
@@ -47,11 +48,11 @@ def _validate_files(
     return failed_files
 
 
-def _read_creation_rules():
+def _read_creation_rules(yaml_path):
     creation_rules = None
 
     try:
-        if os.path.isfile(".sops.yaml"):
+        if os.path.isfile(yaml_path):
             with open(".sops.yaml") as fd:
                 values = yaml.load(fd)
                 creation_rules = values.get("creation_rules", None)
@@ -76,7 +77,7 @@ def main(args: Optional[List[str]] = None) -> int:
     parsed_args = parser.parse_args(args)
 
     if parsed_args.use_sops_yaml:
-        creation_rules = _read_creation_rules()
+        creation_rules = _read_creation_rules(yaml_path=parsed_args.sops_yaml_path)
     else:
         creation_rules = None
 
