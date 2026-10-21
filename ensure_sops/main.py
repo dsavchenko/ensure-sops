@@ -36,7 +36,8 @@ def _verify_keys(
             "kind",
             "metadata",
             "stringData",
-            "type"
+            "type",
+            "sops"
         },
 
         "Configmap": {
@@ -45,7 +46,8 @@ def _verify_keys(
             "data",
             "immutable",
             "kind",
-            "metadata"
+            "metadata",
+            "sops"
         },
     }
 
