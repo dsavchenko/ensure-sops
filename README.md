@@ -4,7 +4,8 @@
 This is a pre-commit compatible application that validates your SOPS encrypted files are indeed encrypted. It works with json, yaml, ini and dotenv formatted files that are products of SOPS' encryption. Main use case is preventing mistakes like committing files that should've been encrypted, unencrypted.
 
 ## History
-This is a fork of https://github.com/tacto-ai/ensure-sops that adds features I need to use this project working in the GitOps context, where the k8s secrets are SOPS-encrypted.
+This project is based on [Original Project](https://github.com/tacto-ai/ensure-sops) and contains modifications improving checks of the SOPS-encrypted k8s secrets and configmaps. 
+The original BSD 3-Clause License is retained.
 
 ## Features
 - Compatibility with all SOPS' output formats
